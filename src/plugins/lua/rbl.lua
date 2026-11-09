@@ -1081,6 +1081,13 @@ local function gen_rbl_callback(rule)
     local resolved_req = {}
     local nresolved = 0
 
+    local function request_origins(req)
+      local origins = lua_util.keys(req.origins)
+      table.sort(origins)
+
+      return table.concat(origins, ',')
+    end
+
     -- This is called when doing resolve_ip phase...
     local function gen_rbl_ip_dns_callback(orig_resolve_table_elt)
       return function(_, _, results, err)
@@ -1118,11 +1125,11 @@ local function gen_rbl_callback(rule)
 
         if nresolved == 0 then
           -- Emit real RBL requests as there are no ip resolution requests
-          for name, req in pairs(resolved_req) do
+          for _, req in pairs(resolved_req) do
             local val_res, val_error = validate_dns(req.n)
             if val_res then
               lua_util.debugm(N, task, "rbl %s; resolve %s -> %s",
-                  rule.symbol, name, req.n)
+                  rule.symbol, request_origins(req), req.n)
               r:resolve_a({
                 task = task,
                 name = req.n,
@@ -1138,11 +1145,11 @@ local function gen_rbl_callback(rule)
       end
     end
 
-    for name, req in pairs(deduped_req) do
+    for _, req in pairs(deduped_req) do
       local val_res, val_error = validate_dns(req.n)
       if val_res then
         lua_util.debugm(N, task, "rbl %s; resolve %s -> %s",
-            rule.symbol, name, req.n)
+            rule.symbol, request_origins(req), req.n)
 
         if req.resolve_ip then
           -- Deal with both ipv4 and ipv6
