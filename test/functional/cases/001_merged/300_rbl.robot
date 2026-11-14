@@ -138,6 +138,8 @@ SELECTORS HASHED BASE64 CASE
   ...  Settings={symbols_enabled = [RBL_SELECTOR_B64]}
   # A base64 hash is case-sensitive data, so the query keeps its case
   Expect Symbol With Exact Options  RBL_SELECTOR_B64  example.org:selector
+  ${rspamd_log} =  Get File  ${RSPAMD_TMPDIR}/rspamd.log
+  Should Contain  ${rspamd_log}  rbl RBL_SELECTOR_B64; resolve example.org ->
 
 SELECTORS HASHED TRAILING DOT
   Scan File  ${RSPAMD_TESTDIR}/messages/btc.eml
